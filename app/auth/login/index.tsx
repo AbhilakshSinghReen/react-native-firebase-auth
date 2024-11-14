@@ -7,12 +7,6 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 export default function Page() {
   const [ok, setOk] = useState(null);
 
-  useEffect(() => {
-    GoogleSignin.configure({
-      webClientId: "",
-    });
-  }, []);
-
   async function onGoogleButtonPress() {
     console.log("ok 6");
     await GoogleSignin.signOut();
@@ -59,8 +53,8 @@ export default function Page() {
   };
 
   function onAuthStateChanged(user) {
-    console.log("User updated");
-    console.log(user);
+    // console.log("User updated");
+    // console.log(user);
 
     setUser(user);
     if (initializing) setInitializing(false);
@@ -71,9 +65,9 @@ export default function Page() {
     return subscriber; // unsubscribe on unmount
   }, []);
 
-  useEffect(() => {
-    console.log(user);
-  }, [user]);
+  // useEffect(() => {
+  //   console.log(user);
+  // }, [user]);
 
   if (!user) {
     return (
@@ -98,6 +92,11 @@ export default function Page() {
       <Button title="Print ok" onPress={() => console.log(ok)} />
       <Button title="Print access token" onPress={async () => console.log(await user.getAccessToken())} />
       <Button title="Print id token" onPress={async () => console.log(await user.getIdToken())} />
+      <Button title="Print current user" onPress={async () => console.log(auth().currentUser)} />
+      <Button
+        title="Print current user id token"
+        onPress={async () => console.log(await auth().currentUser.getIdToken())}
+      />
     </View>
   );
 }

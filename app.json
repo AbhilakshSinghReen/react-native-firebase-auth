@@ -18,6 +18,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "usesCleartextTraffic": true,
       "package": "com.urbancommute.test",
       "googleServicesFile": "./google-services.json"
     },
