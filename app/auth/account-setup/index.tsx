@@ -17,7 +17,8 @@ export default function AccountSetup() {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [zipcode, setZipcode] = useState("");
-  const email = firebaseAuthUser.email;
+  
+  const email = firebaseAuthUser?.email;
 
   const handleContinueButtonClick = async () => {
     setIsCreating(true);

@@ -7,7 +7,7 @@ import AuthContextProvider, { AuthContext } from "@/context/AuthContextProvider"
 
 function initializeApp() {
   GoogleSignin.configure({
-    webClientId: "",
+    webClientId: "899499972697-52dkm4ht1u5e27094b66s46upb1cgdtg.apps.googleusercontent.com",
   });
 }
 
@@ -15,7 +15,7 @@ function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
 
-  const { firebaseAuthUser, user, isAppReady } = useContext(AuthContext);
+  const { firebaseAuthUser, user, isAppReady, isFetchingUser } = useContext(AuthContext);
 
   useEffect(() => {
     initializeApp();
@@ -29,34 +29,44 @@ function RootLayout() {
     firebaseAuthUser ok, user ok -> protected screens
     */
 
+    console.log("Update");
+    console.log(segments);
+    console.log(firebaseAuthUser);
+    console.log(isFetchingUser);
+    console.log(user);
+    console.log(isAppReady);
+    console.log("-------------------------");
+
     if (firebaseAuthUser === null) {
-      console.log("No firebase auth user, redirecting to login.");
+      console.log("---> router redirect to /auth/login - reason: no firebase auth user");
       router.replace("/auth/login");
       return;
     }
 
+    if (user === null && isFetchingUser) {
+      return;
+    }
+
     if (user !== null && user.exists === false) {
-      console.log("ok firebase auth user but no mongo user, redirecting to setup.");
+      console.log("---> router redirect to /auth/account-setup - reason: ok firebase auth user but no mongo user");
       router.replace("/auth/account-setup");
       return;
     }
 
-    if (user !== null && (!(user.isApproved && user.isActive) || user.type !== "driver")) {
-      console.log("ok firebase auth user but not-ok mongo user, redirecting to unavailable.");
+    if (user !== null && (user.type !== "driver" || !user.isApproved || !user.isActive)) {
+      console.log("---> router redirect to /auth/unavailable - reason: ok firebase auth user but bad mongo user");
       router.replace("/auth/unavailable");
       return;
     }
 
-    console.log(user);
-
     if (segments[0] !== "(protected)") {
-      // user is ok, but for some reason trying to access auth routes
-      console.log("ok firebase auth user and ok mongo user but trying to access an auth route, redirecting to home.");
-
+      console.log(
+        "---> router redirect to /(protected)/home - reason: ok firebase auth user and ok mongo user, but trying to access auth route"
+      );
       router.replace("/(protected)/home");
       return;
     }
-  }, [segments, firebaseAuthUser, user, isAppReady]);
+  }, [segments, firebaseAuthUser, user, isAppReady, isFetchingUser]);
 
   return (
     <View style={{ flex: 1 }}>

@@ -1,10 +1,10 @@
 import { View, Text } from "react-native";
 import React from "react";
 
-export default function Home() {
+export default function Ride() {
   return (
     <View>
-      <Text>No Rides Available</Text>
+      <Text>Ride</Text>
     </View>
   );
 }

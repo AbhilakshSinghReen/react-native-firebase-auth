@@ -8,6 +8,32 @@ const notFoundUser = {
   exists: false,
 };
 
+function getUserObjectFromErrorCode(errorCode) {
+  if (errorCode === "user_not_found") {
+    return {
+      exists: false,
+    };
+  }
+
+  if (errorCode === "user_not_approved") {
+    return {
+      exists: true,
+      isApproved: false,
+      isActive: false,
+    };
+  }
+
+  if (errorCode === "user_disabled") {
+    return {
+      exists: true,
+      isApproved: true,
+      isActive: false,
+    };
+  }
+
+  return null;
+}
+
 function AuthContextProvider({ children }) {
   const [isAppReady, setIsAppReady] = useState(false);
   const [firebaseAuthUser, setFirebaseAuthUser] = useState(null);
@@ -28,7 +54,7 @@ function AuthContextProvider({ children }) {
       console.log("Error while getting authenticated user:");
       console.log(getAuthenticatedUserResponse.error);
 
-      setUser(getAuthenticatedUserResponse.error.code === "user_not_found" ? notFoundUser : null);
+      setUser(getUserObjectFromErrorCode(getAuthenticatedUserResponse.error.code));
       setIsFetchingUser(false);
       return;
     }
