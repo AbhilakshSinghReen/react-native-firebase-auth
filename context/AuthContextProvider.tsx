@@ -4,71 +4,63 @@ import auth from "@react-native-firebase/auth";
 import apiClient from "@/api/apiClient";
 
 const AuthContext = createContext();
+const notFoundUser = {
+  exists: false,
+};
 
 function AuthContextProvider({ children }) {
   const [isAppReady, setIsAppReady] = useState(false);
   const [firebaseAuthUser, setFirebaseAuthUser] = useState(null);
+  const [isFetchingUser, setIsFetchingUser] = useState(false);
   const [user, setUser] = useState(null);
 
-  const onFirebaseAuthStateChanged = async (authUser) => {
-    console.log("Firebase Auth User updated:");
-    console.log(authUser);
+  const updateUserFromFirebaseAuthUser = async (authUser) => {
+    setIsFetchingUser(true);
 
     if (authUser === null) {
-      setFirebaseAuthUser(authUser);
       setUser(null);
-      setIsAppReady(true);
+      setIsFetchingUser(false);
       return;
     }
 
     const getAuthenticatedUserResponse = await apiClient.getAuthenticatedUser();
-    // const getAuthenticatedUserResponse = {
-    //   success: false,
-    //   error: "foo",
-    // };
     if (!getAuthenticatedUserResponse.success) {
       console.log("Error while getting authenticated user:");
       console.log(getAuthenticatedUserResponse.error);
 
-      if (getAuthenticatedUserResponse.error.code === "user_not_found") {
-        setUser({
-          exists: false,
-        });
-      } else {
-        setUser(null);
-      }
-
-      setFirebaseAuthUser(authUser);
-      setIsAppReady(true);
+      setUser(getAuthenticatedUserResponse.error.code === "user_not_found" ? notFoundUser : null);
+      setIsFetchingUser(false);
       return;
     }
 
     console.log("User updated:");
     console.log(getAuthenticatedUserResponse.result.user);
 
+    setUser({
+      ...getAuthenticatedUserResponse.result.user,
+      exists: true,
+    });
+    setIsFetchingUser(false);
+  };
+
+  const updateUserFromContextFirebaseAuthUser = async () => {
+    updateUserFromFirebaseAuthUser(firebaseAuthUser);
+  };
+
+  const onFirebaseAuthStateChanged = async (authUser) => {
+    console.log("Firebase Auth User updated:");
+    console.log(authUser);
+
     setFirebaseAuthUser(authUser);
-    setUser(getAuthenticatedUserResponse.result.user);
-    console.log("setting isAppReady");
+    await updateUserFromFirebaseAuthUser(authUser);
     setIsAppReady(true);
   };
 
   useEffect(() => {
-    let firebaseAuthListenerUnsubscribe = null;
-
-    try {
-      firebaseAuthListenerUnsubscribe = auth().onAuthStateChanged(onFirebaseAuthStateChanged);
-      console.log("auth listener set up");
-    } catch (error) {
-      console.log("Error in setting up firebase auth listener");
-      console.log(error);
-    }
+    const firebaseAuthListenerUnsubscribe = auth().onAuthStateChanged(onFirebaseAuthStateChanged);
 
     return () => {
-      if (firebaseAuthListenerUnsubscribe !== null) {
-        firebaseAuthListenerUnsubscribe();
-      }
-
-      console.log("auth listener removed");
+      firebaseAuthListenerUnsubscribe();
     };
   }, []);
 
@@ -77,9 +69,10 @@ function AuthContextProvider({ children }) {
       value={{
         isAppReady: isAppReady,
         firebaseAuthUser: firebaseAuthUser,
-        setFirebaseAuthUser: setFirebaseAuthUser,
         user: user,
         setUser: setUser,
+        updateUserFromContextFirebaseAuthUser: updateUserFromContextFirebaseAuthUser,
+        isFetchingUser: isFetchingUser,
       }}
     >
       {children}

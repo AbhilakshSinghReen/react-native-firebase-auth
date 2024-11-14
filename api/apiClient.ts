@@ -86,6 +86,19 @@ class APIClient {
     return responseData;
   }
 
+  async createUser(userType, fullName, email, phoneNumber, address) {
+    const requestBody = {
+      userType: userType,
+      fullName: fullName,
+      email: email,
+      phoneNumber: phoneNumber,
+      address: JSON.stringify(address),
+    };
+
+    const responseData = await this.makeRequest("POST", apiEndpoints.auth.users, requestBody, {}, true);
+    return responseData;
+  }
+
   async patchUserRequestOrActivation(userId, patchMethod) {
     const responseData = await this.makeRequest(
       "PATCH",

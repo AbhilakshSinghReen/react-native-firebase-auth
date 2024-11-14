@@ -1,24 +1,44 @@
-import { useState } from "react";
-import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { useState, useContext } from "react";
+import { View, ActivityIndicator, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 
 import SignOutButton from "@/components/SignOutButton";
+import apiClient from "@/api/apiClient";
+import { AuthContext } from "@/context/AuthContextProvider";
 
 export default function AccountSetup() {
+  const { firebaseAuthUser, updateUserFromContextFirebaseAuthUser } = useContext(AuthContext);
+
+  const [isCreating, setIsCreating] = useState(false);
   const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
+  // const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [line1, setLine1] = useState("");
   const [line2, setLine2] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [zipcode, setZipcode] = useState("");
+  const email = firebaseAuthUser.email;
 
-  const handleSubmit = () => {
-    // Handle form submission logic here
-    console.log({ fullName, email, phoneNumber, address: { line1, line2, city, state, zipcode } });
+  const handleContinueButtonClick = async () => {
+    setIsCreating(true);
+
+    const address = {
+      line1: line1,
+      line2: line2,
+      city: city,
+      state: state,
+      zipCode: zipcode,
+    };
+
+    const createUserResponse = await apiClient.createUser("driver", fullName, email, phoneNumber, address);
+    if (!createUserResponse.success) {
+      console.log(createUserResponse.error);
+      setIsCreating(false);
+      return;
+    }
+
+    updateUserFromContextFirebaseAuthUser();
   };
-
-  const handleSignIntoAnotherAccountButtonClick = async () => {};
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -28,10 +48,11 @@ export default function AccountSetup() {
       <TextInput style={styles.input} placeholder="Full Name" value={fullName} onChangeText={setFullName} />
 
       <TextInput
-        style={styles.input}
+        style={styles.inputDisabled}
         placeholder="Email"
         value={email}
-        onChangeText={setEmail}
+        // onChangeText={setEmail}
+        editable={false}
         keyboardType="email-address"
       />
 
@@ -61,8 +82,10 @@ export default function AccountSetup() {
         keyboardType="numeric"
       />
 
-      <TouchableOpacity style={styles.primaryButton} onPress={handleSubmit}>
+      <TouchableOpacity style={styles.primaryButton} onPress={handleContinueButtonClick} disabled={isCreating}>
         <Text style={styles.buttonText}>Continue</Text>
+
+        {isCreating && <ActivityIndicator size={26} color="#ffffff" />}
       </TouchableOpacity>
 
       <View
@@ -82,8 +105,9 @@ export default function AccountSetup() {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    padding: 20,
-    justifyContent: "center",
+    paddingTop: 20,
+    paddingLeft: 20,
+    paddingRight: 20,
   },
   title1: {
     fontSize: 32,
@@ -109,15 +133,27 @@ const styles = StyleSheet.create({
     padding: 10,
     marginVertical: 10,
   },
+  inputDisabled: {
+    borderWidth: 1,
+    backgroundColor: "#ccc",
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+    marginVertical: 10,
+  },
   buttonText: {
     textAlign: "center",
     fontSize: 18,
     fontWeight: "bold",
     color: "white",
+    marginLeft: 10,
+    marginRight: 10,
   },
   primaryButton: {
     backgroundColor: "#1B9CFC",
     width: "100%",
+    display: "flex",
+    flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     padding: 10,

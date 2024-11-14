@@ -47,6 +47,8 @@ function RootLayout() {
       return;
     }
 
+    console.log(user);
+
     if (segments[0] !== "(protected)") {
       // user is ok, but for some reason trying to access auth routes
       console.log("ok firebase auth user and ok mongo user but trying to access an auth route, redirecting to home.");

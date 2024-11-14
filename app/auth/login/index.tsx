@@ -1,102 +1,92 @@
-import { useState, useEffect } from "react";
-import { View, Text, Button } from "react-native";
-
-import auth from "@react-native-firebase/auth";
+import { useState } from "react";
+import { View, Text, ActivityIndicator, StyleSheet, TouchableOpacity } from "react-native";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
-export default function Page() {
-  const [ok, setOk] = useState(null);
+import auth from "@react-native-firebase/auth";
 
-  async function onGoogleButtonPress() {
-    console.log("ok 6");
-    await GoogleSignin.signOut();
-
-    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-
-    const signInResult = await GoogleSignin.signIn();
-    setOk(signInResult);
-    console.log("stage1 ok");
-
-    // Try the new style of google-sign in result, from v13+ of that module
-    let idToken = signInResult.data.idToken;
-    // if (!idToken) {
-    //   // if you are using older versions of google-signin, try old style result
-    //   idToken = signInResult.idToken;
-    // }
-    // if (!idToken) {
-    //   throw new Error("No ID token found");
-    // }
-
-    // Create a Google credential with the token
-    const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-
-    // // Sign-in the user with the credential
-    const userCred = auth().signInWithCredential(googleCredential);
-    console.log("stage2 ok");
-    // console.log(userCred)
-    // return userCred;
-  }
-
-  const [initializing, setInitializing] = useState(true);
-  const [user, setUser] = useState(null);
+export default function Login() {
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   const handleSignInWithGoogleButtonClick = async () => {
-    console.log("foo you too");
+    setIsSigningIn(true);
 
     try {
-      await onGoogleButtonPress();
-      console.log("Google Signin successful");
+      await GoogleSignin.signOut();
+
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      const signInResult = await GoogleSignin.signIn();
+
+      const idToken = signInResult.data.idToken;
+      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+
+      const firebaseAuthUserCredential = auth().signInWithCredential(googleCredential);
+
+      console.log("Sign In With Google successful.");
+
+      // return firebaseAuthUserCredential
     } catch (error) {
-      console.log("Google signin failed");
+      console.log("Sign In With Google failed.");
       console.log(error);
+      setIsSigningIn(false);
     }
   };
 
-  function onAuthStateChanged(user) {
-    // console.log("User updated");
-    // console.log(user);
-
-    setUser(user);
-    if (initializing) setInitializing(false);
-  }
-
-  useEffect(() => {
-    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
-    return subscriber; // unsubscribe on unmount
-  }, []);
-
-  // useEffect(() => {
-  //   console.log(user);
-  // }, [user]);
-
-  if (!user) {
-    return (
-      <View>
-        <Text>Home page</Text>
-        <Button title="Sign In With Google" onPress={handleSignInWithGoogleButtonClick} />
-        <Button title="Print Foo" onPress={() => console.log("Foo")} />
-        <Button title="Print User" onPress={() => console.log(user)} />
-        <Button title="Print ok" onPress={() => console.log(ok)} />
-      </View>
-    );
-  }
-
   return (
-    <View>
-      <Text>Home page</Text>
-      <Text>You are logged in</Text>
-      <Text>{user.email}</Text>
-      <Text>{user.accessToken}</Text>
-      {/* <Button title="Sign In With Google" onPress={handleSignInWithGoogleButtonClick} /> */}
-      <Button title="Print User" onPress={() => console.log(user)} />
-      <Button title="Print ok" onPress={() => console.log(ok)} />
-      <Button title="Print access token" onPress={async () => console.log(await user.getAccessToken())} />
-      <Button title="Print id token" onPress={async () => console.log(await user.getIdToken())} />
-      <Button title="Print current user" onPress={async () => console.log(auth().currentUser)} />
-      <Button
-        title="Print current user id token"
-        onPress={async () => console.log(await auth().currentUser.getIdToken())}
-      />
+    <View style={styles.container}>
+      <Text style={styles.title1}>Urban Commute</Text>
+      <Text style={styles.title2}>Driver's App</Text>
+      <TouchableOpacity style={styles.primaryButton} onPress={handleSignInWithGoogleButtonClick} disabled={isSigningIn}>
+        <FontAwesome6 name="google" size={26} color="white" />
+        <Text style={styles.buttonText}>Sign In With Google</Text>
+
+        {isSigningIn && <ActivityIndicator size={26} color="#ffffff" />}
+      </TouchableOpacity>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexGrow: 1,
+    paddingTop: 200,
+    paddingLeft: 20,
+    paddingRight: 20,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "flex-start",
+    alignItems: "center",
+  },
+  title1: {
+    fontSize: 40,
+    fontWeight: "bold",
+    marginBottom: 5,
+    textAlign: "center",
+  },
+  title2: {
+    fontSize: 32,
+    fontWeight: "bold",
+    marginBottom: 50,
+    textAlign: "center",
+  },
+  primaryButton: {
+    backgroundColor: "#1B9CFC",
+    width: "100%",
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 10,
+    marginTop: 10,
+  },
+  buttonText: {
+    marginLeft: 10,
+    marginRight: 10,
+    textAlign: "center",
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "white",
+  },
+});
