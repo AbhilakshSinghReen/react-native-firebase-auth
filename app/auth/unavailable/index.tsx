@@ -2,7 +2,7 @@ import { useContext, useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 
-import { AuthContext } from "@/context/AuthContextProvider";
+import { AuthContext, AUTH_STATES } from "@/context/AuthContextProvider";
 import SignOutButton from "@/components/SignOutButton";
 
 const defaultError = {
@@ -11,12 +11,12 @@ const defaultError = {
   allowRefresh: true,
 };
 
-function getErrorFromUser(user) {
-  if (user === null) {
+function getErrorFromCombinedAuthState(combinedAuthState) {
+  if (combinedAuthState.authState === null) {
     return defaultError;
   }
 
-  if (!user.isApproved) {
+  if (combinedAuthState.authState === AUTH_STATES.UNAPPROVED_APP_USER) {
     return {
       title: "Pending Approval",
       message: "Your account has not been approved by an Administrator yet. Please check back again in a few minutes.",
@@ -24,7 +24,7 @@ function getErrorFromUser(user) {
     };
   }
 
-  if (!user.isActive) {
+  if (combinedAuthState.authState === AUTH_STATES.DEACTIVATED_APP_USER) {
     return {
       title: "Account Deactivated",
       message: "Your account has been deactivated. Please contact an Administrator for more details.",
@@ -32,7 +32,7 @@ function getErrorFromUser(user) {
     };
   }
 
-  if (user.type !== "driver") {
+  if (combinedAuthState.authState === AUTH_STATES.WRONG_APP) {
     return {
       title: "Oops! Wrong App.",
       message: `You seem to have downloaded the Urban Commute Driver's Application. But, you're a customer, you must download the "Urban Commute" app. Here's a link to install the correct app:`,
@@ -45,31 +45,31 @@ function getErrorFromUser(user) {
 }
 
 export default function Unavailable() {
-  const { user, updateUserFromContextFirebaseAuthUser } = useContext(AuthContext);
+  const { combinedAuthState } = useContext(AuthContext);
 
-  const [error, setError] = useState(getErrorFromUser(user));
+  const [error, setError] = useState(getErrorFromCombinedAuthState(combinedAuthState));
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefreshButtonClick = async () => {
     setIsRefreshing(true);
 
-    try {
-      await updateUserFromContextFirebaseAuthUser();
-    } catch (error) {
-      console.log(error);
-      // should do something here
-    } finally {
+    setTimeout(() => {
       setIsRefreshing(false);
-    }
+    }, 2500);
+
+    // try {
+    //   await updateUserFromContextFirebaseAuthUser();
+    // } catch (error) {
+    //   console.log(error);
+    //   // should do something here
+    // } finally {
+    //   setIsRefreshing(false);
+    // }
   };
 
   useEffect(() => {
-    if (user === null) {
-      return;
-    }
-
-    setError(getErrorFromUser(user));
-  }, [user]);
+    setError(getErrorFromCombinedAuthState(combinedAuthState));
+  }, [combinedAuthState]);
 
   return (
     <View style={styles.container}>

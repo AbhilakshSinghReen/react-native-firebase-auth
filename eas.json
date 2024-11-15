@@ -4,6 +4,7 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal"
-    }
+    },
+    "production": {}
   }
 }

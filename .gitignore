@@ -40,3 +40,6 @@ app-example
 commands.txt
 google-services.json
 GoogleService-Info.plist
+
+/android
+/ios

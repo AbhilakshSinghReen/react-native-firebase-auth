@@ -3,7 +3,7 @@ import { ActivityIndicator, View } from "react-native";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
-import AuthContextProvider, { AuthContext } from "@/context/AuthContextProvider";
+import AuthContextProvider, { AuthContext, AUTH_STATES } from "@/context/AuthContextProvider";
 
 function initializeApp() {
   GoogleSignin.configure({
@@ -15,62 +15,59 @@ function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
 
-  const { firebaseAuthUser, user, isAppReady, isFetchingUser } = useContext(AuthContext);
+  const { combinedAuthState } = useContext(AuthContext);
 
   useEffect(() => {
     initializeApp();
   }, []);
 
   useEffect(() => {
-    /*
-    firebaseAuthUser null -> login screen
-    firebaseAuthUser ok, user not found -> account-setup screen
-    firebaseAuthUser ok, user unapproved or inactive -> unavailable screen
-    firebaseAuthUser ok, user ok -> protected screens
-    */
-
-    console.log("Update");
+    console.log("");
+    console.log("----------------------------------------------------------------------------------");
+    console.log(`--------> Checking for redirects - ${new Date().toISOString()}`);
+    console.log(combinedAuthState);
     console.log(segments);
-    console.log(firebaseAuthUser);
-    console.log(isFetchingUser);
-    console.log(user);
-    console.log(isAppReady);
-    console.log("-------------------------");
 
-    if (firebaseAuthUser === null) {
-      console.log("---> router redirect to /auth/login - reason: no firebase auth user");
+    if (combinedAuthState.authState === null) {
+      // still loading
+      console.log("---> No redirect (loading)");
+      return;
+    }
+
+    if (combinedAuthState.authState === AUTH_STATES.UNAUTHENTICATED) {
+      console.log("---> Redirect to /auth/login");
       router.replace("/auth/login");
       return;
     }
 
-    if (user === null && isFetchingUser) {
-      return;
-    }
-
-    if (user !== null && user.exists === false) {
-      console.log("---> router redirect to /auth/account-setup - reason: ok firebase auth user but no mongo user");
+    if (combinedAuthState.authState === AUTH_STATES.NO_APP_USER) {
+      console.log("---> Redirect to /auth/account-setup");
       router.replace("/auth/account-setup");
       return;
     }
 
-    if (user !== null && (user.type !== "driver" || !user.isApproved || !user.isActive)) {
-      console.log("---> router redirect to /auth/unavailable - reason: ok firebase auth user but bad mongo user");
+    if (
+      combinedAuthState.authState === AUTH_STATES.UNAPPROVED_APP_USER ||
+      combinedAuthState.authState === AUTH_STATES.DEACTIVATED_APP_USER ||
+      combinedAuthState.authState === AUTH_STATES.WRONG_APP
+    ) {
+      console.log("---> Redirect to /auth/unavailable");
       router.replace("/auth/unavailable");
       return;
     }
 
     if (segments[0] !== "(protected)") {
-      console.log(
-        "---> router redirect to /(protected)/home - reason: ok firebase auth user and ok mongo user, but trying to access auth route"
-      );
-      router.replace("/(protected)/home");
+      console.log("---> Redirect to /(protected)/profile");
+      router.replace("/(protected)/profile");
       return;
     }
-  }, [segments, firebaseAuthUser, user, isAppReady, isFetchingUser]);
+
+    console.log("---> No redirect");
+  }, [combinedAuthState, segments]);
 
   return (
     <View style={{ flex: 1 }}>
-      {!isAppReady && (
+      {!combinedAuthState.authState === null && (
         <View
           style={{
             position: "absolute",

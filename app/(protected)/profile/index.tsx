@@ -23,7 +23,9 @@ export default function AccountSetup() {
           backgroundColor: "white",
         }}
       >
-        <ActivityIndicator size="large" color="#0000ff" />
+        {/* <ActivityIndicator size="large" color="#0000ff" /> */}
+
+        <SignOutButton label="foo" backgroundColor="red" />
       </View>
     );
   }
@@ -31,7 +33,7 @@ export default function AccountSetup() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title1}>Urban Commute Driver</Text>
-      <Text style={styles.title}>{user.fullName}</Text>
+      <Text style={styles.title}>{user?.fullName}</Text>
 
       {/* <TextInput
         style={styles.inputDisabled}
