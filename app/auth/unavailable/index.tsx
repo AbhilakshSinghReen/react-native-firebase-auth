@@ -45,7 +45,7 @@ function getErrorFromCombinedAuthState(combinedAuthState) {
 }
 
 export default function Unavailable() {
-  const { combinedAuthState } = useContext(AuthContext);
+  const { combinedAuthState, authErrors } = useContext(AuthContext);
 
   const [error, setError] = useState(getErrorFromCombinedAuthState(combinedAuthState));
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -92,6 +92,8 @@ export default function Unavailable() {
       {error.link && <Text style={styles.errorLink}>{error.link}</Text>}
 
       <View style={styles.borderView} />
+
+      <Text>{authErrors}</Text>
 
       <View
         style={{

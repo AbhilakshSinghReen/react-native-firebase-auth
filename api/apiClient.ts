@@ -69,6 +69,7 @@ class APIClient {
         success: false,
         error: {
           code: "api_client_error",
+          message: JSON.stringify(error),
         },
       };
     }

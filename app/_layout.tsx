@@ -85,31 +85,16 @@ function RootLayout() {
         </View>
       )}
 
-      <Stack>
-        <Stack.Screen
-          name="auth/unavailable/index"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="auth/login/index"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="auth/account-setup/index"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="(protected)"
-          options={{
-            headerShown: false,
-          }}
-        />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen name="auth/unavailable/index" />
+
+        <Stack.Screen name="auth/login/index" />
+        <Stack.Screen name="auth/account-setup/index" />
+        <Stack.Screen name="(protected)" />
       </Stack>
     </View>
   );

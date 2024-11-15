@@ -51,6 +51,7 @@ const AuthContext = createContext(null);
 
 function AuthContextProvider({ children }) {
   const [combinedAuthState, setCombinedAuthState] = useState(defaultAuthState);
+  const [authErrors, setAuthErrors] = useState("foo the error");
 
   const onFirebaseAuthStateChanged = async (firebaseAuthUser) => {
     console.log("Firebase Auth State Changed");
@@ -78,6 +79,7 @@ function AuthContextProvider({ children }) {
       console.log(getAppUserResponse.error);
 
       getAppUserErrorCode = getAppUserResponse.error.code;
+      setAuthErrors(getAppUserResponse.error.message);
     }
 
     console.log("Updating auth state:");
@@ -110,6 +112,7 @@ function AuthContextProvider({ children }) {
     <AuthContext.Provider
       value={{
         combinedAuthState: combinedAuthState,
+        authErrors: authErrors,
       }}
     >
       {children}

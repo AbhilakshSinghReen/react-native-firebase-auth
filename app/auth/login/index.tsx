@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { View, Text, ActivityIndicator, StyleSheet, TouchableOpacity } from "react-native";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
 import auth from "@react-native-firebase/auth";
+import { AuthContext } from "@/context/AuthContextProvider";
 
 export default function Login() {
   const [isSigningIn, setIsSigningIn] = useState(false);
+
+  const { authErrors } = useContext(AuthContext);
 
   const handleSignInWithGoogleButtonClick = async () => {
     setIsSigningIn(true);
@@ -42,6 +45,8 @@ export default function Login() {
 
         {isSigningIn && <ActivityIndicator size={26} color="#ffffff" />}
       </TouchableOpacity>
+
+      <Text>{authErrors}</Text>
     </View>
   );
 }
